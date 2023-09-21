@@ -209,7 +209,13 @@ async fn ingest_replays(
     let meta = serde_json::json!({ "parent_groups": lineage });
 
     for replay in replays {
-        let mut replay_json = fetcher.fetch_replay(&replay.id).await?;
+        let mut replay_json = match fetcher.fetch_replay(&replay.id).await {
+            Ok(rp) => rp,
+            Err(err) => {
+                tracing::warn!(?lineage, ?binding, ?replay, error = ?err, "failed to fetch replay");
+                return Err(err);
+            }
+        };
         replay_json
             .as_object_mut()
             .expect("replay must be an object")
