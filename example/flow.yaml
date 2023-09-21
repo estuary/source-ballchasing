@@ -1,0 +1,39 @@
+# This is an example flow.yaml file, which you can use as a template to try out the connector.
+# See the README for instructions.
+captures:
+  <my-tenant>/rl-stats/source-ballchasing:
+    endpoint:
+      connector:
+        image: ghcr.io/estuary/source-ballchasing:dev
+        # This config file contains the encrypted auth token. If you're trying
+        # this on your own, you can either provide the auth token in plain text,
+        # or follow the instructions [here](https://docs.estuary.dev/concepts/connectors/#protecting-secrets)
+        # to encrypt the config yourself. If providing the token in plain text
+        # (which is fine for testing things out), then the config block should look like:
+
+        # Here's where you'll set your auth token
+        config:
+          authToken: 'your-ballchasing-api-key-here'
+    bindings:
+      - target: '<my-tenant>/rl-stats/games'
+        resource:
+          creatorId: 'me'
+
+collections:
+  # This is the collection that will hold 
+  <my-tenant>/rl-stats/games:
+    # Only the `id` property is required when writing data to the collection.
+    # All other properties will be inferred from the actual data.
+    writeSchema:
+      type: object
+      properties:
+        id: { type: string }
+      required: [id]
+
+    readSchema:
+      allOf:
+        - $ref: flow://write-schema
+        - $ref: flow://inferred-schema
+    # This means that replays will be automatically deduplicated based on the
+    # `id` property within each document.
+    key: [/id]
