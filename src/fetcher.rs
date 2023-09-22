@@ -19,11 +19,27 @@ struct GroupListing {
     list: Vec<GroupSummary>,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub enum Visibility {
+    Public,
+    Private,
+    Unlisted,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Uploader {
+    pub steam_id: String,
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ReplaySummary {
     pub id: String,
     #[serde(with = "time::serde::rfc3339")]
     pub created: OffsetDateTime,
+
+    pub visibility: Option<Visibility>,
+    pub uploader: Uploader,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
