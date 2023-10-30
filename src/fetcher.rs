@@ -158,7 +158,7 @@ impl Fetcher {
                 return Ok(body);
             } else if s == reqwest::StatusCode::TOO_MANY_REQUESTS {
                 // We'll just loop around and try again
-                tracing::warn!("delaying in response to 429 status");
+                tracing::debug!("delaying in response to 429 status");
             } else {
                 let body = resp.text().await;
                 return Err(anyhow::anyhow!("response error {s:?}, body: {body:?}"));
