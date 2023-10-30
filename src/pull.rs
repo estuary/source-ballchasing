@@ -127,13 +127,13 @@ async fn run_sweep(
                     .context("ingesting replays")?;
                 tracing::debug!(%binding_key, num_replays = replays.len(), "finished processing replays");
             } else {
-                tracing::info!("no replays found under group");
+                tracing::debug!("no replays found under group");
             }
         }
         tracing::debug!("persisting state");
         emitter.commit(&*state, false).await?;
     }
-    tracing::info!("sweep complete, pending state update");
+    tracing::debug!("sweep complete, pending state update");
     for binding_state in state.bindings.values_mut() {
         binding_state.last_completed_sweep = binding_state.sweep_start.take();
     }
@@ -176,7 +176,7 @@ fn should_ingest(
 
 /// Does a depth-first search of the graph of groups. Does not use recursion
 /// because async rust does not yet allow it
-#[tracing::instrument(skip(fetcher))]
+#[tracing::instrument(skip(fetcher), level = "debug")]
 async fn next_replays(
     state: &mut BindingState,
     fetcher: &Fetcher,
