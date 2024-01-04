@@ -7,10 +7,7 @@ use std::collections::BTreeMap;
 
 use crate::transactor::Emitter;
 use anyhow::Context;
-use proto_flow::{
-    capture::{request::Open, response::Opened, Response},
-    flow::CaptureSpec,
-};
+use proto_flow::capture::{request::Open, response::Opened, Response};
 use serde::{Deserialize, Serialize};
 
 use time::OffsetDateTime;
@@ -32,11 +29,11 @@ pub async fn do_pull(
     mut stdout: io::Stdout,
 ) -> anyhow::Result<()> {
     tracing::info!("starting to pull");
-    let Some(CaptureSpec { config_json, bindings, .. }) = capture else {
+    let Some(spec) = capture else {
         anyhow::bail!("open request is missing capture spec");
     };
 
-    let config = serde_json::from_str::<EndpointConfig>(&config_json)
+    let config = serde_json::from_str::<EndpointConfig>(&spec.config_json)
         .context("deserializing endpoint config")?;
 
     let fetcher = Fetcher::new(config.auth_token);
@@ -48,7 +45,7 @@ pub async fn do_pull(
     };
 
     let mut binding_indices = BTreeMap::new();
-    for (i, binding) in bindings.iter().enumerate() {
+    for (i, binding) in spec.bindings.iter().enumerate() {
         let collection_name = binding
             .collection
             .as_ref()
@@ -190,7 +187,7 @@ async fn next_replays(
 
     todo_groups.retain(|g| !g.is_done());
 
-    let Some(grp) =  todo_groups.front_mut() else {
+    let Some(grp) = todo_groups.front_mut() else {
         return Ok(None);
     };
 
