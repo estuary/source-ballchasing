@@ -3,6 +3,8 @@ pub mod pull;
 pub mod state;
 pub mod transactor;
 
+use std::mem;
+
 use self::fetcher::Fetcher;
 use anyhow::Context;
 
@@ -59,11 +61,16 @@ pub async fn run_connector(
     if let Some(_) = spec {
         return do_spec(stdout).await;
     }
-    if let Some(discover_req) = discover {
-        return do_discover(discover_req.config_json, stdout).await;
+    if let Some(mut discover_req) = discover {
+        return do_discover(mem::take(&mut discover_req.config_json), stdout).await;
     }
-    if let Some(validate_req) = validate {
-        return do_validate(validate_req.config_json, validate_req.bindings, stdout).await;
+    if let Some(mut validate_req) = validate {
+        return do_validate(
+            mem::take(&mut validate_req.config_json),
+            mem::take(&mut validate_req.bindings),
+            stdout,
+        )
+        .await;
     }
     if let Some(_) = apply {
         return do_apply(stdout).await;
@@ -98,8 +105,9 @@ async fn do_spec(mut stdout: io::Stdout) -> anyhow::Result<()> {
             protocol: 3032023,
             config_schema_json,
             resource_config_schema_json,
-            documentation_url: "https://go.estuary.dev/http-ingest".to_string(),
+            documentation_url: "https://go.estuary.dev/placeholder".to_string(),
             oauth2: None,
+            resource_path_pointers: vec!["/creatorId".to_string()],
         }),
         ..Default::default()
     };
@@ -139,12 +147,8 @@ async fn do_validate(
         .context("failed to connect to ballchasing api")?;
     tracing::info!(?ping_response, "successfully pinged the ballchasing API");
     let mut output = Vec::with_capacity(bindings.len());
-    for ValidateBinding {
-        collection: _,
-        resource_config_json,
-    } in bindings
-    {
-        let resource_config = serde_json::from_str::<ResourceConfig>(&resource_config_json)
+    for binding in bindings {
+        let resource_config = serde_json::from_str::<ResourceConfig>(&binding.resource_config_json)
             .context("deserializing resource config")?;
 
         let groups = fetcher
@@ -233,6 +237,7 @@ fn discovered_collection(steam_id: String) -> DiscoveredBinding {
         }))
         .unwrap(),
         key: vec!["/id".to_string()],
+        resource_path: Vec::new(), // resource_path is deprecated and unused
     }
 }
 

@@ -1,0 +1,18 @@
+---
+source: src/lib.rs
+expression: schema
+---
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "ResourceConfig",
+  "type": "object",
+  "required": [
+    "creatorId"
+  ],
+  "properties": {
+    "creatorId": {
+      "description": "The creator id to filter replays in ballchasing. Only replays in groups for this creator will be ingested.",
+      "type": "string"
+    }
+  }
+}

@@ -1,0 +1,18 @@
+---
+source: src/lib.rs
+expression: schema
+---
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "EndpointConfig",
+  "type": "object",
+  "required": [
+    "authToken"
+  ],
+  "properties": {
+    "authToken": {
+      "description": "Authentication token for the ballchasing api.\n\nIf you don't have one, get one by visiting: https://ballchasing.com/login",
+      "type": "string"
+    }
+  }
+}
